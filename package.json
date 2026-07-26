@@ -10,15 +10,13 @@
   },
   "dependencies": {
     "next": "14.2.5",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "axios": "^1.7.7",
     "js-cookie": "^3.0.5",
     "@stripe/stripe-js": "^4.8.0",
     "@stripe/react-stripe-js": "^2.8.1",
-    "lucide-react": "^0.445.0",
-    "react-icons": "^4.10.1",
-    "stripe": "^12.0.0"
+    "lucide-react": "^0.445.0"
   },
   "devDependencies": {
     "@types/node": "^20",
