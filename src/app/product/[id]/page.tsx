@@ -264,7 +264,7 @@ function MobileLink({ productId }: { productId: number }) {
       ta.style.opacity = "0";
       document.body.appendChild(ta);
       ta.select();
-      try { document.execCommand("copy"); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch {}
+      try { document.execCommand("copy"); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { }
       document.body.removeChild(ta);
     }
   };
