@@ -308,7 +308,7 @@ function MobileLink({ productId }: { productId: number }) {
               </button>
               {!lanIp && (
                 <p className="mt-2 text-[11px] text-orange-600 leading-snug">
-                  Couldn't auto-detect your LAN IP (some networks block IP-echo services).
+                  Could not auto-detect your LAN IP (some networks block IP-echo services).
                   Find it with <code className="bg-orange-50 px-1 rounded">ipconfig</code> on Windows
                   and replace YOUR_LAN_IP above, then reload.
                 </p>
