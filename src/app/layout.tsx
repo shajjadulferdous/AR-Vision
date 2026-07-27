@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-// @ts-expect-error - Next handles global CSS imports at build time.
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
