@@ -23,6 +23,8 @@ const PUBLIC_PATH_PATTERNS: RegExp[] = [
   /\/api\/auth\/(login|register|refresh)/,
   /\/api\/products\/[^/]+$/,            // GET single product (public browse)
   /\/api\/products\/[^/]+\/ar-model$/,  // GET AR model (public)
+  /\/api\/products\/[^/]+\/(reviews|rating)(\?.*)?$/, // GET product reviews/rating summary
+  /\/api\/customer\/products\/[^/]+\/reviews\/my$/, // CUSTOMER's own review fetch
   /\/api\/products(\?.*)?$/,            // GET product list (public)
   /\/api\/products\/(search|filter|categories)/,
 ];
@@ -114,6 +116,19 @@ export const productApi = {
   },
   deleteARModel: (productId: number) =>
     api.delete(`/api/admin/products/${productId}/ar-model`),
+};
+
+export const reviewApi = {
+  getByProductId: (productId: number, params?: any) =>
+    api.get(`/api/products/${productId}/reviews`, { params }),
+  getSummary: (productId: number) =>
+    api.get(`/api/products/${productId}/rating`),
+  getMyReview: (productId: number) =>
+    api.get(`/api/customer/products/${productId}/reviews/my`),
+  create: (productId: number, data: { rating: number; comment?: string }) =>
+    api.post(`/api/customer/products/${productId}/reviews`, data),
+  deleteMyReview: (reviewId: number) =>
+    api.delete(`/api/customer/reviews/${reviewId}`),
 };
 
 export const cartApi = {

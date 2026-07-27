@@ -2,17 +2,21 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import { productApi } from "@/lib/api";
+import { productApi, reviewApi } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { ShoppingCart, Zap, Package, Cuboid, ArrowLeft, Smartphone, Copy, Check, QrCode } from "lucide-react";
+import { ShoppingCart, Zap, Package, Cuboid, ArrowLeft, Smartphone, Copy, Check, QrCode, Star } from "lucide-react";
 import Link from "next/link";
+import ProductReviewSection from "../../../components/ProductReviewSection";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const [product, setProduct] = useState<any>(null);
   const [arModel, setArModel] = useState<any>(null);
+  const [ratingSummary, setRatingSummary] = useState<any>(null);
+  const [recentReviews, setRecentReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
   const [showAR, setShowAR] = useState(false);
@@ -29,6 +33,31 @@ export default function ProductDetailPage() {
       setProduct(pRes.data.data);
       if (arRes) setArModel(arRes.data.data);
     }).finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    const pid = Number(id);
+    if (!pid) return;
+    //, sortDir: "desc"
+    console.log("Fetching reviews for product ID:", pid);
+    setReviewsLoading(true);
+    Promise.allSettled([
+      reviewApi.getSummary(pid),
+      reviewApi.getByProductId(pid, { page: 0, size: 5 }),
+    ]).then(([summaryResult, reviewsResult]) => {
+      if (summaryResult.status === "fulfilled") {
+        setRatingSummary(summaryResult.value.data?.data ?? summaryResult.value.data ?? null);
+      } else {
+        setRatingSummary(null);
+      }
+
+      if (reviewsResult.status === "fulfilled") {
+        console.log("Recent reviews:", reviewsResult.value.data?.data?.content ?? reviewsResult.value.data?.content ?? []);
+        setRecentReviews(reviewsResult.value.data?.data?.content ?? reviewsResult.value.data?.content ?? []);
+      } else {
+        setRecentReviews([]);
+      }
+    }).finally(() => setReviewsLoading(false));
   }, [id]);
 
   const handleAddToCart = async () => {
@@ -155,6 +184,60 @@ export default function ProductDetailPage() {
               {formatPrice(product.price)}
             </div>
 
+            {!reviewsLoading && ratingSummary && (
+              <div className="mb-5 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, index) => {
+                      const starValue = index + 1;
+                      const filled = starValue <= Math.round(Number(ratingSummary.averageRating || 0));
+                      return (
+                        <Star
+                          key={starValue}
+                          size={14}
+                          className={filled ? "text-amber-400" : "text-gray-300"}
+                          fill={filled ? "currentColor" : "none"}
+                        />
+                      );
+                    })}
+                  </div>
+                  <span className="text-sm font-semibold text-gray-800">
+                    {Number(ratingSummary.averageRating || 0).toFixed(2)}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {ratingSummary.totalReviews || 0} review{(ratingSummary.totalReviews || 0) === 1 ? "" : "s"}
+                  </span>
+                </div>
+
+                {recentReviews.length > 0 ? (
+                  <div className="mt-3 space-y-2">
+                    {recentReviews.slice(0, 2).map((review) => (
+                      <div key={review.reviewId} className="rounded-xl bg-white border border-gray-100 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-medium text-gray-800">{review.customerName || "Customer"}</p>
+                          <div className="flex items-center gap-0.5">
+                            {Array.from({ length: 5 }).map((_, index) => (
+                              <Star
+                                key={index}
+                                size={12}
+                                className={index < Number(review.rating || 0) ? "text-amber-400" : "text-gray-300"}
+                                fill={index < Number(review.rating || 0) ? "currentColor" : "none"}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {review.comment && (
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{review.comment}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 mt-3">No customer reviews yet.</p>
+                )}
+              </div>
+            )}
+
             {product.stockQuantity > 0 ? (
               <p className="text-sm text-green-600 font-medium mb-5">
                 ✓ In Stock ({product.stockQuantity} available)
@@ -199,6 +282,14 @@ export default function ProductDetailPage() {
               </button>
             </div>
           </div>
+        </div>
+
+        <div className="mt-10">
+          <ProductReviewSection
+            productId={product.productId}
+            productName={product.name}
+            isCustomer={user?.role === "CUSTOMER"}
+          />
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { ShoppingCart, Eye, Cuboid, Package } from "lucide-react";
+import Image from "next/image";
+import { ShoppingCart, Eye, Cuboid, Package, Star } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
@@ -17,6 +18,9 @@ interface ProductCardProps {
     imageUrl?: string;
     hasArModel: boolean;
     arModelUrl?: string;
+    averageRating?: number;
+    reviewCount?: number;
+    ratingCount?: number;
   };
 }
 
@@ -36,12 +40,21 @@ export default function ProductCard({ product }: ProductCardProps) {
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("en-BD", { style: "currency", currency: "BDT", maximumFractionDigits: 0 }).format(price);
 
+  const averageRating = Number(product.averageRating ?? 0);
+  const reviewCount = Number(product.reviewCount ?? product.ratingCount ?? 0);
+
   return (
     <div className="product-card group">
       <Link href={`/product/${product.productId}`}>
         <div className="relative aspect-square bg-gray-50 overflow-hidden">
           {product.imageUrl ? (
-            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <Image
+              src={product.imageUrl}
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <Package size={48} className="text-gray-200" />
@@ -73,6 +86,13 @@ export default function ProductCard({ product }: ProductCardProps) {
           <h3 className="font-semibold text-gray-800 mb-1 line-clamp-1">{product.name}</h3>
           {product.description && (
             <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description}</p>
+          )}
+          {(averageRating > 0 || reviewCount > 0) && (
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+              <Star size={12} className="text-amber-400" fill="currentColor" />
+              <span className="font-medium text-gray-700">{averageRating > 0 ? averageRating.toFixed(1) : "New"}</span>
+              <span>({reviewCount || "0"})</span>
+            </div>
           )}
           <div className="flex items-center justify-between mt-3">
             <span className="text-lg font-bold text-gray-800">{formatPrice(product.price)}</span>
